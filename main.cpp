@@ -20,20 +20,52 @@
 using namespace std;
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 800;
+vector<vec2> ctrlPoints; //vector to hold the control points
 
+//Return factorial
+float factorial(int n) {
+	if (n == 0) {
+		return 1;
+	}
+	return n * factorial(n - 1);
+}
+
+//Return combination
+float combination(int n, int k) {
+	return factorial(n) / (factorial(n) * factorial(n - k));
+}
+
+//Return binomial
+float binomial(int n, int k, float t) {
+	return combination(n, k) * pow(t, k) * pow(1 - t, n - k);
+}
 
 void GL_render()
 {
     glClear(GL_COLOR_BUFFER_BIT);
     glutSwapBuffers();
 
+/*
     glBegin(GL_LINES);
     glColor3f(1.0f,0.0f,0.0f);
+    glEnd();
     // just for example, remove if desired
     glVertex2f(-.5f,-.5f);
     glVertex2f(.5f,-.5f);
     glVertex2f(.5f,.5f);
-    glVertex2f(-.5f,.5f);
+    glVertex2f(-.5f,.5f);*/
+
+    //Initialize line using GL_LINE_STRIP
+    glBegin(GL_LINE_STRIP);
+    //Iterate between 0 and 1; increment by 0.01
+    for (float t = 0.0; t < 1.0; t += 0.01) {
+	    vec2 tmp;
+	    for (unsigned int i = 0; i < ctrlPoints.size(); i++) {
+		    tmp = tmp + (binomial(ctrlPoints.size() - 1, i, t) * combination(ctrlPoints.size() - 1, i) * ctrlPoints.at(i));
+	    }
+	    glColor3f(1.0f, 0.0f, 0.0f);
+	    glVertex2f(tmp[0], tmp[1]);
+    }
     glEnd();
     glFlush();
 }
@@ -51,6 +83,7 @@ void GL_mouse(int button,int state,int x,int y)
     if(button==GLUT_LEFT_BUTTON && state==GLUT_DOWN){
         double px,py,dummy_z; // we don't care about the z-value but need something to pass in
         gluUnProject(x,y,0,mv_mat,proj_mat,vp_mat,&px,&py,&dummy_z);
+	ctrlPoints.push_back(vec2(px, py)); //Push the coordinates where the mouse was clicked
         glutPostRedisplay();
     }
 }
